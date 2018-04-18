@@ -1,0 +1,8 @@
+<car>
+	<vin>lada</vin>
+	<milage>10000</milage>
+	<type>suv</type>
+	<location>russia</location>
+	<price>5000</price>
+	<maxWeight>2000</maxWeight>
+</car>

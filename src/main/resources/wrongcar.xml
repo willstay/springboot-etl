@@ -1,0 +1,8 @@
+<car>
+	<vin>man</vin>
+	<milage>16000</milage>
+	<type>moto</type>
+	<location>USA</location>
+	<price>90000</price>
+	<maxWeight>9000</maxWeight>
+</car>

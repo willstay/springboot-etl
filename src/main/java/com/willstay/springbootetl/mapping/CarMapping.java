@@ -5,10 +5,10 @@ import com.willstay.springbootetl.domain.AbstractCar;
 import com.willstay.springbootetl.domain.Suv;
 import com.willstay.springbootetl.domain.Truck;
 
-public class Mapping {
+public class CarMapping {
     private final Car car;
 
-    public Mapping(Car car) {
+    public CarMapping(Car car) {
         this.car = car;
     }
 

@@ -1,12 +1,16 @@
 package com.willstay.springbootetl.scheduledtasks;
 
 import com.willstay.domain.Car;
-import com.willstay.springbootetl.deserialization.CarDeserialization;
+import com.willstay.springbootetl.serialization.CarSerialization;
 import com.willstay.springbootetl.domain.AbstractCar;
+import com.willstay.springbootetl.domain.Suv;
+import com.willstay.springbootetl.domain.Truck;
 import com.willstay.springbootetl.folderpaths.FolderPaths;
 import com.willstay.springbootetl.mapping.CarMapping;
 import com.willstay.springbootetl.mapping.NoSuchCarException;
-import com.willstay.springbootetl.serialization.CarSerialization;
+import com.willstay.springbootetl.messagesender.RabbitSender;
+import com.willstay.springbootetl.deserialization.CarDeserialization;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
@@ -19,19 +23,28 @@ import java.util.stream.Stream;
 
 @Component
 public class ScheduledTask {
+    @Autowired
+    private RabbitSender rabbitSender;
+
     @Scheduled(fixedRate = 20000)
     public void makeJson() throws IOException {
         Stream<Path> carStream = Files.walk(Paths.get(FolderPaths.CARS_PATH));
         carStream.filter(Files::isRegularFile).forEach(path -> {
-            CarSerialization carSerialization = new CarSerialization(path);
+            CarDeserialization carDeserialization = new CarDeserialization(path);
             try {
-                Car car = carSerialization.serialize();
+                Car car = carDeserialization.deSerialize();
                 CarMapping carMapping = new CarMapping(car);
                 try {
                     AbstractCar abstractCar = carMapping.doMap();
-                    CarDeserialization carDeserialization = new CarDeserialization(abstractCar);
-                    carDeserialization.makeJson();
+                    CarSerialization carSerialization = new CarSerialization(abstractCar);
+                    carSerialization.makeJson();
                     path.toFile().delete();
+
+                    if (abstractCar instanceof Truck) {
+                        rabbitSender.truckDone();
+                    } else if (abstractCar instanceof Suv) {
+                        rabbitSender.suvsDone();
+                    }
                 } catch (NoSuchCarException e) {
                     System.out.println("This is not a truck or a suv");
                 }
